@@ -15,12 +15,14 @@ public class MainActivity extends AppCompatActivity {
     static final String emptyOperation = "";
     static final String emptyNumber = "0";
 
+    static final String errZeroDivider = "На ноль делить нельзя";
+
     enum InputState { stNumber, stOperation, stEqual };
 
     TextView resultField; // текстовое поле для вывода результата
     TextView operationField;    // текстовое поле для вывода знака операции
     EditText numberField;   // поле для ввода числа
-    Double operand = null;  // операнд операции
+    double operand = 0.0;  // операнд операции
     String lastOperation = emptyOperation; // последняя операция
     InputState inputState = InputState.stNumber;
 
@@ -42,8 +44,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onSaveInstanceState(Bundle outState) {
         outState.putString("OPERATION", lastOperation);
         outState.putSerializable("STATE", inputState);
-        if (operand!=null)
-            outState.putDouble("OPERAND", operand);
+        String soperand = resultField.getText().toString();
+        outState.putString("SOPERAND", soperand);
         super.onSaveInstanceState(outState);
     }
     // получение ранее сохраненного состояния
@@ -52,8 +54,9 @@ public class MainActivity extends AppCompatActivity {
         super.onRestoreInstanceState(savedInstanceState);
         lastOperation = savedInstanceState.getString("OPERATION");
         inputState = (InputState)savedInstanceState.getSerializable("STATE");
-        operand= savedInstanceState.getDouble("OPERAND");
-        resultField.setText(operand.toString());
+        String soperand = savedInstanceState.getString("SOPERAND");
+        resultField.setText(soperand);
+        operand = Double.valueOf(soperand);
         operationField.setText(lastOperation);
     }
 
@@ -62,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
         numberField.setText(emptyNumber);
         operationField.setText("");
         resultField.setText("");
-        operand = null;  // операнд операции
+        operand = 0.0;  // операнд операции
         lastOperation = emptyOperation; // последняя операция
         inputState = InputState.stNumber;
     }
@@ -130,18 +133,16 @@ public class MainActivity extends AppCompatActivity {
                                                          : '-' + snumber;
                     break;
                 case "%": // Перевести в %:
-                    if (operand != null) {
+                    if (resultField.getText() != "") {
                         snumber = snumber.replace(',', '.');
-                        Double number = Double.valueOf(snumber);
+                        double number = Double.valueOf(snumber);
                         number *= operand / 100;
-                        snumber = number.toString().replace('.', ',');
+                        snumber = String.valueOf(number).replace('.', ',');
                     }
                     break;
             }
             numberField.setText(snumber);
-
             inputState = InputState.stNumber;
-            return;
         }
     }
 
@@ -174,17 +175,23 @@ public class MainActivity extends AppCompatActivity {
 
         String snumber = numberField.getText().toString();
         snumber = snumber.replace(',', '.');
-        Double number = Double.valueOf(snumber);
+        double number = Double.valueOf(snumber);
 
         // если операнд ранее не был установлен (при вводе самой первой операции)
-        if (operand == null) operand = number;
+        if (resultField.getText() == "") {
+            operand = number; snumber = snumber.replace('.', ',');
+        }
         else {
 //            if (lastOperation.equals(emptyOperation)) return;
             switch (lastOperation) {
                 case emptyOperation:
                     return;
                 case "/":
-                    if (number == 0) operand = 0.0;
+                    if (number == 0) {
+                        Toast toast = Toast.makeText(this, errZeroDivider, Toast.LENGTH_LONG);
+                        toast.show();
+                        operand = 0.0;
+                    }
                     else operand /= number;
                     break;
                 case "*":
@@ -197,8 +204,8 @@ public class MainActivity extends AppCompatActivity {
                     operand -= number;
                     break;
             }
+            snumber = String.valueOf(operand).replace('.', ',');
         }
-        resultField.setText(operand.toString().replace('.', ','));
-//        numberField.setText(emptyNumber);
+        resultField.setText(snumber);
     }
 }
