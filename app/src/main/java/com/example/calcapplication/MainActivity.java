@@ -117,22 +117,28 @@ public class MainActivity extends AppCompatActivity {
 
         // Операции над numberField
         if (!snumber.equals(emptyNumber)) {
-
-            if (op.equals("CE")) { // Стереть все число
-                numberField.setText(emptyNumber);
-            } else if (op.equals("⌫")) { // Стереть последний символ
-                numberField.setText(snumber.substring(0, nLen - 1));
-            } else if (op.equals("+/-")) { // Изменить знак
-                if (snumber.charAt(0) == '-') numberField.setText(snumber.substring(1, nLen));
-                else numberField.setText('-' + snumber);
-            } else if (op.equals("%")) { // Перевести в %
-                if (operand != null) {
-                    snumber = snumber.replace(',', '.');
-                    Double number = Double.valueOf(snumber);
-                    number *= operand / 100;
-                    numberField.setText(number.toString().replace('.', ','));
-                }
+            switch (op) {
+                case "CE": // Стереть все число:
+                    snumber = emptyNumber;
+                    break;
+                case "⌫": // Стереть последний символ
+                    snumber = (nLen == 1) ? emptyNumber
+                                          : snumber.substring(0, nLen - 1);
+                    break;
+                case "+/-": // Изменить знак
+                    snumber = (snumber.charAt(0) == '-') ? snumber.substring(1, nLen)
+                                                         : '-' + snumber;
+                    break;
+                case "%": // Перевести в %:
+                    if (operand != null) {
+                        snumber = snumber.replace(',', '.');
+                        Double number = Double.valueOf(snumber);
+                        number *= operand / 100;
+                        snumber = number.toString().replace('.', ',');
+                    }
+                    break;
             }
+            numberField.setText(snumber);
 
             inputState = InputState.stNumber;
             return;
