@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
         inputState = (InputState)savedInstanceState.getSerializable("STATE");
         String soperand = savedInstanceState.getString("SOPERAND");
         resultField.setText(soperand);
-        operand = Double.valueOf(soperand);
+        operand = Double.parseDouble(soperand);
         operationField.setText(lastOperation);
     }
 
@@ -68,6 +68,27 @@ public class MainActivity extends AppCompatActivity {
         operand = 0.0;  // операнд операции
         lastOperation = emptyOperation; // последняя операция
         inputState = InputState.stNumber;
+    }
+
+    // Десятичное - в строку
+    private String decimalToString(double num) {
+        //snumber = String.format("%5.0f", operand);
+        //snumber = DecimalFormat.getInstance().format(operand); // Без лишних нулей
+        String result = "" + num;
+        result = result.replace('.', ',');
+        int len = result.length();
+        if (len > 1) {
+            if (result.substring(len-2, len).equals(",0")) // Незначащий 0
+                result = result.substring(0, len-2);
+        }
+        return result;
+    }
+
+    // Строку - в десятичное
+    private double stringToDecimal(String snum) {
+        String snumber = snum.replace(',', '.');
+        double result = Double.parseDouble(snumber);
+        return result;
     }
 
     // Обработка нажатия на числовую кнопку
@@ -134,10 +155,9 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case "%": // Перевести в %:
                     if (resultField.getText() != "") {
-                        snumber = snumber.replace(',', '.');
-                        double number = Double.valueOf(snumber);
-                        number *= operand / 100;
-                        snumber = String.valueOf(number).replace('.', ',');
+                        double number = stringToDecimal(snumber);
+                        number *= operand / 100.;
+                        snumber = decimalToString(number);
                     }
                     break;
             }
@@ -174,15 +194,13 @@ public class MainActivity extends AppCompatActivity {
     private void performBinOperation() {
 
         String snumber = numberField.getText().toString();
-        snumber = snumber.replace(',', '.');
-        double number = Double.valueOf(snumber);
+        double number = stringToDecimal(snumber);
 
         // если операнд ранее не был установлен (при вводе самой первой операции)
         if (resultField.getText() == "") {
-            operand = number; snumber = snumber.replace('.', ',');
+            operand = number;
         }
         else {
-//            if (lastOperation.equals(emptyOperation)) return;
             switch (lastOperation) {
                 case emptyOperation:
                     return;
@@ -204,7 +222,7 @@ public class MainActivity extends AppCompatActivity {
                     operand -= number;
                     break;
             }
-            snumber = String.valueOf(operand).replace('.', ',');
+            snumber = decimalToString(operand);
         }
         resultField.setText(snumber);
     }
