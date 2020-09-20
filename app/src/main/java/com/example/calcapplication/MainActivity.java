@@ -12,18 +12,15 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
-    static final String emptyOperation = "";
     static final String emptyNumber = "0";
-
-    static final String errZeroDivider = "На ноль делить нельзя";
 
     enum InputState { stNumber, stOperation, stEqual };
 
     TextView resultField; // текстовое поле для вывода результата
     TextView operationField;    // текстовое поле для вывода знака операции
     EditText numberField;   // поле для ввода числа
-    double operand = 0.0;  // операнд операции
-    String lastOperation = emptyOperation; // последняя операция
+    //double operand = 0.0;  // операнд операции
+    String lastOperation = ""; // последняя операция
     InputState inputState = InputState.stNumber;
 
     @Override
@@ -44,8 +41,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onSaveInstanceState(Bundle outState) {
         outState.putString("OPERATION", lastOperation);
         outState.putSerializable("STATE", inputState);
-        String soperand = resultField.getText().toString();
-        outState.putString("SOPERAND", soperand);
+        String sResult = resultField.getText().toString();
+        outState.putString("SRESULT", sResult);
         super.onSaveInstanceState(outState);
     }
     // получение ранее сохраненного состояния
@@ -54,9 +51,9 @@ public class MainActivity extends AppCompatActivity {
         super.onRestoreInstanceState(savedInstanceState);
         lastOperation = savedInstanceState.getString("OPERATION");
         inputState = (InputState)savedInstanceState.getSerializable("STATE");
-        String soperand = savedInstanceState.getString("SOPERAND");
-        resultField.setText(soperand);
-        operand = Double.parseDouble(soperand);
+        String sResult = savedInstanceState.getString("SRESULT");
+        resultField.setText(sResult);
+        //operand = Double.parseDouble(soperand);
         operationField.setText(lastOperation);
     }
 
@@ -65,30 +62,9 @@ public class MainActivity extends AppCompatActivity {
         numberField.setText(emptyNumber);
         operationField.setText("");
         resultField.setText("");
-        operand = 0.0;  // операнд операции
-        lastOperation = emptyOperation; // последняя операция
+        //operand = 0.0;  // операнд операции
+        lastOperation = ""; // последняя операция
         inputState = InputState.stNumber;
-    }
-
-    // Десятичное - в строку
-    private String decimalToString(double num) {
-        //snumber = String.format("%5.0f", operand);
-        //snumber = DecimalFormat.getInstance().format(operand); // Без лишних нулей
-        String result = "" + num;
-        result = result.replace('.', ',');
-        int len = result.length();
-        if (len > 1) {
-            if (result.substring(len-2, len).equals(",0")) // Незначащий 0
-                result = result.substring(0, len-2);
-        }
-        return result;
-    }
-
-    // Строку - в десятичное
-    private double stringToDecimal(String snum) {
-        String snumber = snum.replace(',', '.');
-        double result = Double.parseDouble(snumber);
-        return result;
     }
 
     // Обработка нажатия на числовую кнопку
@@ -154,11 +130,8 @@ public class MainActivity extends AppCompatActivity {
                                                          : '-' + snumber;
                     break;
                 case "%": // Перевести в %:
-                    if (resultField.getText() != "") {
-                        double number = stringToDecimal(snumber);
-                        number *= operand / 100.;
-                        snumber = decimalToString(number);
-                    }
+                    String sResult = resultField.getText().toString();
+                    snumber = Calculator.percentCalc(sResult, snumber);
                     break;
             }
             numberField.setText(snumber);
@@ -178,8 +151,11 @@ public class MainActivity extends AppCompatActivity {
         if (op.equals("=") || inputState == InputState.stNumber) {
             try {
                 performBinOperation();
-            } catch (NumberFormatException ex) {
-                numberField.setText("***");
+            } catch (Exception e) {
+                inputState = InputState.stNumber;
+                Toast toast = Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG);
+                toast.show();
+                return;
             }
         }
 
@@ -191,39 +167,11 @@ public class MainActivity extends AppCompatActivity {
         else inputState = InputState.stEqual;
     }
 
-    private void performBinOperation() {
+    private void performBinOperation() throws Calculator.DivisionByZero {
+        String sNumber = numberField.getText().toString();
+        String sResult = resultField.getText().toString();
 
-        String snumber = numberField.getText().toString();
-        double number = stringToDecimal(snumber);
-
-        // если операнд ранее не был установлен (при вводе самой первой операции)
-        if (resultField.getText() == "") {
-            operand = number;
-        }
-        else {
-            switch (lastOperation) {
-                case emptyOperation:
-                    return;
-                case "/":
-                    if (number == 0) {
-                        Toast toast = Toast.makeText(this, errZeroDivider, Toast.LENGTH_LONG);
-                        toast.show();
-                        operand = 0.0;
-                    }
-                    else operand /= number;
-                    break;
-                case "*":
-                    operand *= number;
-                    break;
-                case "+":
-                    operand += number;
-                    break;
-                case "-":
-                    operand -= number;
-                    break;
-            }
-            snumber = decimalToString(operand);
-        }
-        resultField.setText(snumber);
+        sResult = Calculator.calc(sResult, sNumber, lastOperation);
+        resultField.setText(sResult);
     }
 }
