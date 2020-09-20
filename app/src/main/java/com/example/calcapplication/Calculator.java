@@ -10,6 +10,7 @@ public class Calculator {
         }
 
     }
+
     // Десятичное - в строку
     static private String decimalToString(double num) {
         //snumber = String.format("%5.0f", operand);

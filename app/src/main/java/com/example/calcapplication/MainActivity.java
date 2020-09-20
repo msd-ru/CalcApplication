@@ -19,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
     TextView resultField; // текстовое поле для вывода результата
     TextView operationField;    // текстовое поле для вывода знака операции
     EditText numberField;   // поле для ввода числа
-    //double operand = 0.0;  // операнд операции
+
     String lastOperation = ""; // последняя операция
     InputState inputState = InputState.stNumber;
 
@@ -53,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
         inputState = (InputState)savedInstanceState.getSerializable("STATE");
         String sResult = savedInstanceState.getString("SRESULT");
         resultField.setText(sResult);
-        //operand = Double.parseDouble(soperand);
         operationField.setText(lastOperation);
     }
 
@@ -62,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
         numberField.setText(emptyNumber);
         operationField.setText("");
         resultField.setText("");
-        //operand = 0.0;  // операнд операции
         lastOperation = ""; // последняя операция
         inputState = InputState.stNumber;
     }
@@ -73,9 +71,6 @@ public class MainActivity extends AppCompatActivity {
         Button button = (Button)view;
         String buttonText = button.getText().toString();
         String numberText = numberField.getText().toString();
-
-//        Toast toast = Toast.makeText(this, "1", Toast.LENGTH_LONG);
-//        toast.show();
 
         // Первая цифра после операции - предварительно очистить операнд/операнды
         if (inputState != InputState.stNumber) {
@@ -144,9 +139,6 @@ public class MainActivity extends AppCompatActivity {
 
         Button button = (Button)view;
         String op = button.getText().toString();
-//        String sTxt = "onOperationClick " + op;
-//        Toast toast = Toast.makeText(this, sTxt, Toast.LENGTH_LONG);
-//        toast.show();
 
         if (op.equals("=") || inputState == InputState.stNumber) {
             try {
